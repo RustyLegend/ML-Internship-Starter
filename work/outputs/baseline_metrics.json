@@ -1,0 +1,32 @@
+{
+  "rows_scored": 389032,
+  "base_rate": 0.44378611528100514,
+  "roc_auc": 0.7800519307355419,
+  "average_precision": 0.6570995376154516,
+  "precision_at_20": 0.1,
+  "precision_at_50": 0.12,
+  "precision_at_100": 0.26,
+  "random_p_at_20": 0.44378611528100514,
+  "random_p_at_50": 0.44378611528100514,
+  "random_p_at_100": 0.44378611528100514,
+  "lift_at_20": 0.22533377353791265,
+  "lift_at_50": 0.27040052824549515,
+  "lift_at_100": 0.5858678111985729,
+  "score_formula": {
+    "visibility_score": 0.4,
+    "freshness_risk_score": 0.3,
+    "position_opportunity_score": 0.25,
+    "depth_gap_score": 0.05
+  },
+  "feature_window": [
+    "2026-03-01",
+    "2026-05-31"
+  ],
+  "label_window": [
+    "2026-06-01",
+    "2026-06-30"
+  ],
+  "prediction_cutoff": "2026-05-31",
+  "data_source": "FlyRank/internship-warehouse (real warehouse)",
+  "target_definition": "June impressions < 0.8 * May impressions"
+}

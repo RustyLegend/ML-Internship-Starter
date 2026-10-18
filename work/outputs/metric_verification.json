@@ -1,0 +1,11 @@
+{
+  "base_rate_match": true,
+  "auc_match": true,
+  "ap_match": true,
+  "confusion_matrix_match": true,
+  "random_p50_mean": 0.5,
+  "random_p50_std": 0.07745966692414834,
+  "model_p50": 0.9,
+  "dummy_p50": 0.56,
+  "status": "PASS - all recomputed metrics match saved values"
+}

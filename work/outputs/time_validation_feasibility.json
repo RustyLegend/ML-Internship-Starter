@@ -1,0 +1,12 @@
+{
+  "feasible": "PARTIALLY",
+  "reason": "Daily facts support 1-2 month backtests, but query_90d has a fixed window (Apr 2-Jun 30) that cannot align to earlier periods.",
+  "possible_backtest": "Feb-Apr 2026 features -> May 2026 label (daily facts only, no query_90d)",
+  "limitations": [
+    "query_90d fixed window (2026-04-02 to 2026-06-30) cannot align to earlier periods",
+    "Only 17 months of data; meaningful backtest needs 2-3 non-overlapping windows",
+    "Unbalanced panel: some clients have 3 months, some 17",
+    "Reduced feature set (no query-level signals) for earlier periods"
+  ],
+  "recommendation": "Document as limitation. Client-grouped split is primary validation. Supplementary time-backtest on daily facts only is possible but not directly comparable."
+}

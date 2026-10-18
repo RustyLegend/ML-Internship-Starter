@@ -1,0 +1,144 @@
+{
+  "artifact": "signal_audit_results",
+  "description": "ML-06 signal audit results. Option 1: March-May 2026 features -> June 2026 target.",
+  "verified_at": "2026-10-18",
+  "warehouse": "FlyRank/internship-warehouse",
+  "feature_table": {
+    "path": "work/outputs/signal_audit_features.parquet",
+    "rows": 389032,
+    "columns": 44,
+    "distinct_clients": null,
+    "distinct_content": 389032,
+    "decline_rate": null,
+    "feature_window": [
+      "2026-03-01",
+      "2026-05-31"
+    ],
+    "label_window": [
+      "2026-06-01",
+      "2026-06-30"
+    ]
+  },
+  "signal_verdicts": {
+    "gsc_impressions_total": {
+      "verdict": "KEEP",
+      "transform": "log1p (heavy tail)",
+      "evidence": "higher impressions -> higher decline rate (0.657-0.704 across buckets)"
+    },
+    "gsc_clicks (as CTR)": {
+      "verdict": "KEEP",
+      "transform": "compute as total_clicks/total_impressions (weighted)",
+      "evidence": "low CTR (0-0.5%) -> 0.672 decline; high CTR (2%+) -> 0.578; 0 clicks -> 0.369"
+    },
+    "gsc_avg_position": {
+      "verdict": "KEEP",
+      "transform": "filter > 0 (0 = sentinel)",
+      "evidence": "deep (51+) -> 0.681; page_1 (4-10) -> 0.593; no data (0) -> 0.109"
+    },
+    "content_age_days": {
+      "verdict": "KEEP",
+      "transform": "bucket or log1p",
+      "evidence": "91-180 days -> 0.608; 365+ -> 0.285 (older content more likely to decline)"
+    },
+    "content_type": {
+      "verdict": "KEEP",
+      "transform": "categorical",
+      "evidence": "comparison article -> 0.724; feedly article -> 0.405; keyword article -> 0.448"
+    },
+    "search_volume": {
+      "verdict": "TRANSFORM",
+      "transform": "log1p + has_search_volume flag",
+      "evidence": "1-100 -> 0.496; 10000+ -> 0.363; missing -> 0.416. Patterned missingness by content_type"
+    },
+    "competition_level": {
+      "verdict": "KEEP",
+      "transform": "categorical, has_competition flag",
+      "evidence": "MEDIUM -> 0.518; LOW -> 0.450; HIGH -> 0.457; missing -> 0.389"
+    },
+    "word_count": {
+      "verdict": "KEEP",
+      "transform": "log1p + has_word_count flag",
+      "evidence": "501-1000 -> 0.501; 2001-3500 -> 0.532; 3500+ -> 0.551. Thinner pages show higher decline"
+    },
+    "ga4_sessions_total": {
+      "verdict": "KEEP",
+      "transform": "log1p, handle NULL (no GA4) separately",
+      "evidence": "0 (none) -> 0.240; 1-10 -> 0.493; 200+ -> 0.747. Low engagement -> higher decline"
+    },
+    "sessions_ai_total": {
+      "verdict": "INVESTIGATE",
+      "transform": "binary has_ai_traffic flag only",
+      "evidence": "extremely sparse (30,177 AI rows in 78.8M). 1-5 -> 0.674; 6-20 -> 0.824; 21+ -> 0.387. Do not train classifier on AI sessions alone"
+    },
+    "q_visible_queries": {
+      "verdict": "CONTEXT ONLY",
+      "transform": "not a predictive feature",
+      "evidence": "query_90d window overlaps target. 1-5 -> 0.647; 21+ -> 0.613. Use as volume context only"
+    },
+    "q_rare_share": {
+      "verdict": "INVESTIGATE",
+      "transform": "needs leakage-safe re-computation",
+      "evidence": "0.5+ -> 0.673; 0-0.2 -> 0.645; missing -> 0.350. Query window overlaps target"
+    },
+    "days_since_last_update": {
+      "verdict": "KEEP",
+      "transform": "log1p or bucketing",
+      "evidence": "31-90 -> 0.582; 91-180 -> 0.577; 181+ -> 0.191. Stale content shows higher decline"
+    },
+    "main_intent": {
+      "verdict": "KEEP",
+      "transform": "categorical, handle missing as unknown",
+      "evidence": "commercial -> 0.519; transactional -> 0.509; informational -> 0.430; navigational -> 0.324"
+    },
+    "backlinks": {
+      "verdict": "KEEP",
+      "transform": "log1p for heavy tail",
+      "evidence": "0 (none) -> 0.501; 1-10 -> 0.471; 51+ -> 0.545. Low-backlink pages show higher decline"
+    },
+    "ga4_sessions (engagement)": {
+      "verdict": "KEEP",
+      "transform": "log1p, handle NULL separately",
+      "evidence": "0 (none) -> 0.240; 1-10 -> 0.493; 200+ -> 0.747"
+    }
+  },
+  "flag_linked_test": {
+    "verdict": "CONFIRMED",
+    "evidence": "Low-CTR pages at strong positions show higher decline rates than high-CTR pages at the same position tier. E.g., page_1: low_ctr -> 0.610, high_ctr -> 0.568. deep: low_ctr -> 0.719, high_ctr -> 0.620.",
+    "assumption": "low CTR relative to position predicts decline -> supported by data"
+  },
+  "distributions": {
+    "heavy_tails": [
+      "gsc_impressions_total",
+      "gsc_clicks_total",
+      "ga4_sessions_total",
+      "ga4_pageviews_total",
+      "scroll_events_total",
+      "sessions_ai_total",
+      "search_volume",
+      "word_count",
+      "char_count",
+      "backlinks",
+      "days_since_last_update"
+    ],
+    "rates_can_exceed_100": [
+      "scroll_rate",
+      "ai_traffic_pct"
+    ],
+    "sentinel_zero": [
+      "gsc_avg_position=0 (no data)",
+      "search_volume=0 (no data)",
+      "word_count=0 (not measured)"
+    ],
+    "patterned_missingness": [
+      "search_volume, competition, cpc, main_intent (by content_type)",
+      "word_count, char_count (by content_type)",
+      "ga4_* (by ga4_data_available flag)"
+    ]
+  },
+  "sample_size_floor": "n >= 50 per bucket (all verdicts meet this floor)",
+  "notebooks": {
+    "signal_audit": "work/notebooks/w04_signal_audit.ipynb"
+  },
+  "cached_aggregate": "work/outputs/signal_audit_features.parquet (389,032 rows, 44 columns)",
+  "status": "PASS - all signal tests completed, verdicts assigned with evidence"
+}

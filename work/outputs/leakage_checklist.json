@@ -1,0 +1,77 @@
+[
+  {
+    "check": "Target columns in features",
+    "verdict": "PASS",
+    "evidence": "Found: none"
+  },
+  {
+    "check": "June-period features",
+    "verdict": "PASS",
+    "evidence": "Found: none"
+  },
+  {
+    "check": "Future-period aggregates",
+    "verdict": "PASS",
+    "evidence": "Found: none (excluded from model features)"
+  },
+  {
+    "check": "Duplicate rows / entity grain",
+    "verdict": "PASS",
+    "evidence": "Max rows per (client, content): 1 (expect 1)"
+  },
+  {
+    "check": "Feature availability cutoff",
+    "verdict": "PASS",
+    "evidence": "All features from Mar-May 2026 daily facts or static dim_content. Verified: MAX(report_date) in feature window = 2026-05-31 < label start 2026-06-01."
+  },
+  {
+    "check": "Client IDs in features",
+    "verdict": "PASS",
+    "evidence": "client_hash_id not in feature set. Categorical features (content_type, main_intent, etc.) do not encode client identity."
+  },
+  {
+    "check": "Train/test client overlap",
+    "verdict": "PASS",
+    "evidence": "Overlap: 0 clients (expect 0)"
+  },
+  {
+    "check": "Preprocessing fit scope",
+    "verdict": "PASS",
+    "evidence": "SimpleImputer and OneHotEncoder fit on X_train only (inside sklearn Pipeline). No leakage."
+  },
+  {
+    "check": "Target-derived thresholds",
+    "verdict": "PASS",
+    "evidence": "No threshold computed from test labels. Class weighting uses training labels only."
+  },
+  {
+    "check": "Missingness as proxy",
+    "verdict": "PASS",
+    "evidence": "Total NaNs in numeric features: 1761351. All imputed with 0 (constant). No future-dependent imputation."
+  },
+  {
+    "check": "Label balance by client",
+    "verdict": "UNRESOLVED",
+    "evidence": "65 clients. Min rows: 13. Decline rate range: 0.000 to 0.989. Small clients may have unreliable rates."
+  },
+  {
+    "check": "Label balance by content type",
+    "verdict": "PASS",
+    "evidence": "{'mean': {'comparison article': 0.7234669811320755, 'feedly article': 0.4046639478270243, 'keyword article': 0.44751029610975246}, 'size': {'comparison article': 3392, 'feedly article': 55661, 'keyword article': 329979}}"
+  },
+  {
+    "check": "Hyperparameter tuning on test",
+    "verdict": "PASS",
+    "evidence": "No hyperparameter search performed. Model params fixed (max_depth=5, min_samples_leaf=50, n_estimators=200)."
+  },
+  {
+    "check": "Precision@K ties",
+    "verdict": "PASS",
+    "evidence": "np.argsort(-scores) sorts descending; ties broken by original order. Base rate used as random reference."
+  },
+  {
+    "check": "Dummy majority P@K",
+    "verdict": "UNRESOLVED",
+    "evidence": "DummyClassifier(strategy=most_frequent) predicts all 1s. P@K = base rate (0.4806) since all rows are positive. This is technically valid but not a meaningful ranking baseline. A genuine random ranking would have P@K ~ base rate with variance."
+  }
+]
