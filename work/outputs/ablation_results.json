@@ -1,0 +1,26 @@
+[
+  {
+    "feature_set":"Full",
+    "n_features":34,
+    "AUC":0.8678885987,
+    "AP":0.7907834588
+  },
+  {
+    "feature_set":"No gsc_impressions_total",
+    "n_features":33,
+    "AUC":0.867886413,
+    "AP":0.7907818092
+  },
+  {
+    "feature_set":"No GSC features",
+    "n_features":29,
+    "AUC":0.5485228597,
+    "AP":0.5577814195
+  },
+  {
+    "feature_set":"Minimal (static only)",
+    "n_features":12,
+    "AUC":0.4556141541,
+    "AP":0.4836767436
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "reason_codes": {
+    "stale_visible_page": "days_since_last_update >= 180 AND gsc_impressions_total >= 500",
+    "low_ctr_visible_page": "gsc_impressions_total >= 100 AND ctr_total < 0.005",
+    "thin_visible_page": "word_count > 0 AND word_count < 1200 AND gsc_impressions_total >= 250",
+    "page_one_decay_risk": "gsc_avg_position > 0 AND gsc_avg_position <= 10 AND content_age_days >= 180",
+    "low_engagement_visible_page": "ga4_sessions_total >= 30 AND engagement_rate < 30",
+    "general_refresh_review": "no specific reason code matched"
+  },
+  "actions": {
+    "refresh_and_review_ctr": "low CTR at strong position",
+    "expand_and_refresh": "thin page with visibility",
+    "refresh_and_review_engagement": "low engagement with visibility",
+    "refresh": "stale or page-one decay risk",
+    "monitor": "default - no urgent action"
+  },
+  "score_formula": {
+    "visibility_score": 0.4,
+    "freshness_risk_score": 0.3,
+    "position_opportunity_score": 0.25,
+    "depth_gap_score": 0.05
+  }
+}

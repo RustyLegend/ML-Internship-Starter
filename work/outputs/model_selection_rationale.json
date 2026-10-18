@@ -1,0 +1,13 @@
+{
+  "selected_model": "decision_tree",
+  "selection_metric": "roc_auc (primary), average_precision (secondary)",
+  "reason": "Best held-out ROC AUC and average precision among the three candidate models.",
+  "baseline_comparison": "All three models beat the heuristic baseline on ROC AUC and average precision.",
+  "interpretability": "Logistic regression coefficients are most interpretable; random forest provides feature importance.",
+  "limitations": [
+    "Client-grouped split may not reflect temporal deployment (no time-based split).",
+    "Class imbalance (44.4% positive) handled with class_weight=balanced.",
+    "Feature set includes static metadata (content_type, search_volume) that may not change over time.",
+    "Query-table features (q_*_prev30) cover only May, not the full feature window."
+  ]
+}

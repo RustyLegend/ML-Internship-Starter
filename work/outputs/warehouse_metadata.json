@@ -1,0 +1,121 @@
+{
+  "artifact": "warehouse_metadata",
+  "description": "Verified read-only metadata for the FlyRank internship warehouse. No credentials or raw records stored.",
+  "verified_at": "2026-10-18",
+  "auth": {
+    "method": "huggingface_hub cached token (get_token)",
+    "whoami_name": "RustyLegend",
+    "whoami_type": "user",
+    "token_stored_in_repo": false
+  },
+  "repo": {
+    "id": "FlyRank/internship-warehouse",
+    "repo_type": "dataset",
+    "private": false,
+    "gated": "auto",
+    "last_modified": "2026-07-07T10:02:21+00:00",
+    "build_id_from_docs": "flyrank_pseudonymized_warehouse_release_v20260703",
+    "total_files": 24,
+    "root_files": [
+      ".gitattributes",
+      "README.md",
+      "dim_clients.parquet",
+      "dim_content.parquet",
+      "fact_content_daily_performance_sample.parquet",
+      "fact_content_query_90d.parquet"
+    ],
+    "partitioned_table": {
+      "path": "fact_content_daily_performance/",
+      "pattern": "month=YYYY-MM/*.parquet",
+      "partitions": ["2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"],
+      "partition_count": 18,
+      "files_per_partition": 1
+    }
+  },
+  "tables": {
+    "dim_clients": {
+      "path": "hf://datasets/FlyRank/internship-warehouse/dim_clients.parquet",
+      "row_count": 104,
+      "column_count": 9,
+      "grain": "one row per client_hash_id",
+      "date_ranges": {"gsc_data_start": ["2025-01-27", "2026-06-02"], "ga4_data_start": ["2025-10-29", "2026-06-01"]},
+      "verified_flag_nulls": {"has_ga4_access_null": 10, "has_gsc_access_null": 10, "access_profile_null": 0},
+      "columns": ["client_hash_id VARCHAR","is_active BOOLEAN","has_gsc_access BOOLEAN","has_ga4_access BOOLEAN","access_profile VARCHAR","client_created_date DATE","client_updated_date DATE","gsc_data_start DATE","ga4_data_start DATE"]
+    },
+    "dim_content": {
+      "path": "hf://datasets/FlyRank/internship-warehouse/dim_content.parquet",
+      "row_count": 519606,
+      "column_count": 26,
+      "grain": "one row per content_hash_id",
+      "date_ranges": {"content_created_date": ["2024-10-16", "2026-07-06"]},
+      "duplicate_content_hash_ids": 0,
+      "columns": ["client_hash_id VARCHAR","content_hash_id VARCHAR","keyword_hash_id VARCHAR","url_hash_id VARCHAR","keyword_char_count BIGINT","keyword_token_count BIGINT","url_char_count BIGINT","content_created_date DATE","content_updated_date DATE","content_type VARCHAR","search_volume BIGINT","competition DOUBLE","competition_level VARCHAR","cpc DOUBLE","main_intent VARCHAR","backlinks BIGINT","category_count BIGINT","keyword_created_date DATE","provider_used VARCHAR","model_used VARCHAR","char_count BIGINT","word_count BIGINT","last_optimized_date DATE","optimization_eligible_date DATE","is_published BOOLEAN","is_deleted BOOLEAN"]
+    },
+    "fact_content_daily_performance": {
+      "path": "hf://datasets/FlyRank/internship-warehouse/fact_content_daily_performance/month=YYYY-MM/*.parquet",
+      "row_count": 78835655,
+      "column_count": 31,
+      "grain": "report_date + client_hash_id + content_hash_id",
+      "report_date_range": ["2025-01-27", "2026-06-30"],
+      "grain_probe_2025_10_dups": 0,
+      "per_month_row_counts": {
+        "2025-01": 1297, "2025-02": 75985, "2025-03": 167859, "2025-04": 285114,
+        "2025-05": 349923, "2025-06": 329201, "2025-07": 469794, "2025-08": 704962,
+        "2025-09": 845813, "2025-10": 2165471, "2025-11": 6793825, "2025-12": 7752930,
+        "2026-01": 7890817, "2026-02": 7355108, "2026-03": 9841378, "2026-04": 10424730,
+        "2026-05": 11687376, "2026-06": 11694072
+      },
+      "per_month_sum_equals_total": true,
+      "columns": ["report_date DATE","client_hash_id VARCHAR","content_hash_id VARCHAR","client_has_gsc BOOLEAN","client_has_ga4 BOOLEAN","gsc_data_available BOOLEAN","ga4_data_available BOOLEAN","gsc_impressions BIGINT","gsc_clicks BIGINT","gsc_sum_position BIGINT","gsc_avg_position DOUBLE","ga4_pageviews BIGINT","ga4_sessions BIGINT","ga4_users BIGINT","ga4_engaged_sessions BIGINT","ga4_total_engagement_sec BIGINT","sessions_organic BIGINT","sessions_direct BIGINT","sessions_referral BIGINT","sessions_social BIGINT","sessions_paid BIGINT","sessions_ai BIGINT","ai_chatgpt BIGINT","ai_perplexity BIGINT","ai_gemini BIGINT","ai_copilot BIGINT","ai_claude BIGINT","ai_meta BIGINT","ai_other BIGINT","scroll_events BIGINT","month VARCHAR"]
+    },
+    "fact_content_daily_performance_sample": {
+      "path": "hf://datasets/FlyRank/internship-warehouse/fact_content_daily_performance_sample.parquet",
+      "row_count": 11694072,
+      "column_count": 31,
+      "grain": "report_date + client_hash_id + content_hash_id",
+      "report_date_range": ["2026-06-01", "2026-06-30"],
+      "note": "Equals the final (2026-06) partition exactly. This is the panel's LAST month — never use for label logic; it is the natural outcome window.",
+      "columns": "same 31 columns as fact_content_daily_performance"
+    },
+    "fact_content_query_90d": {
+      "path": "hf://datasets/FlyRank/internship-warehouse/fact_content_query_90d.parquet",
+      "row_count": 2414248,
+      "column_count": 21,
+      "grain": "client_hash_id + content_hash_id + query_hash_id",
+      "window_start": "2026-04-02",
+      "window_end": "2026-06-30",
+      "grain_probe_dups": 0,
+      "columns": ["client_hash_id VARCHAR","content_hash_id VARCHAR","query_hash_id VARCHAR","query_char_count BIGINT","query_token_count BIGINT","window_start DATE","window_end DATE","impressions_90d BIGINT","clicks_90d BIGINT","impressions_last30 BIGINT","clicks_last30 BIGINT","impressions_prev30 BIGINT","clicks_prev30 BIGINT","avg_position_90d DOUBLE","avg_position_last30 DOUBLE","avg_position_prev30 DOUBLE","content_total_impressions_90d BIGINT","content_visible_query_count BIGINT","rare_query_count BIGINT","rare_impressions_share DOUBLE","anonymized_impressions_share DOUBLE"]
+    }
+  },
+  "join_keys": {
+    "dim_clients": ["client_hash_id"],
+    "dim_content": ["client_hash_id", "content_hash_id"],
+    "fact_content_daily_performance": ["report_date", "client_hash_id", "content_hash_id"],
+    "fact_content_query_90d": ["client_hash_id", "content_hash_id", "query_hash_id"],
+    "rules": ["join facts to dim_content on content_hash_id", "join client-level facts to dim_clients on client_hash_id", "per-content context columns repeat on every query row -> ANY_VALUE(), never SUM()"]
+  },
+  "data_quality_observations": {
+    "availability_flags_are_three_valued": true,
+    "filter_rule": "use IS TRUE / IS NOT TRUE, never '= FALSE' or bare NOT",
+    "sampled_flag_counts": {
+      "fact_2025-01..2025-04": {"rows": 530255, "ga4_null": 0, "ga4_false": 530255, "gsc_null": 0, "gsc_false": 0},
+      "fact_2025-10": {"rows": 2165471, "ga4_null": 0, "ga4_true": 9545, "ga4_false": 2155926, "gsc_null": 0, "gsc_false": 977817, "gsc_impressions_null": 0, "gsc_false_with_nonzero_impressions": 0}
+    },
+    "doc_discrepancy": "docs warn of 'millions of rows with NULL ga4_data_available'. VERIFIED 2026-10-18: NULL ga4 flags DO occur — 2,397,428 NULL rows in 2026-06 (target month). Earlier sampled months (2025-01..04, 2025-10) had 0 NULL. The warning is real but month-dependent. Always use IS TRUE / IS NOT TRUE."
+  },
+  "leakage_watch": {
+    "query_table_window": ["2026-04-02", "2026-06-30"],
+    "conflict_with_contract": "w03_data_contract proposes feature window 2026-02-01..2026-04-30 and target 2026-05-01..2026-05-31. fact_content_query_90d covers 2026-04-02..2026-06-30, so its impressions_90d / impressions_last30 / avg_position_last30 overlap the target window -> leakage if used as features for that label. Only *_prev30-style columns are safe, and even those must be checked against the chosen windows.",
+    "rule": "never let the feature window overlap the label window; align windows against the query table's fixed window before use"
+  },
+  "queries_run": [
+    "whoami() -> RustyLegend",
+    "list_repo_files(FlyRank/internship-warehouse) -> 24 files",
+    "DESCRIBE every table (schema only)",
+    "COUNT(*) + MIN/MAX(date) per table (parquet footer metadata only)",
+    "per-month COUNT(*) over 18 partitions (footer metadata only; sum == 78835655)",
+    "grain probes: dim_content (0 dup), fact 2025-10 (0 dup), fact_content_query_90d (0 dup)",
+    "flag distribution on fact 2025-01..04 and 2025-10 (single-column filtered reads)"
+  ]
+}

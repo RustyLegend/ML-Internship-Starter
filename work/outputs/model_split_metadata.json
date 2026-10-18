@@ -1,0 +1,26 @@
+{
+  "random_state": 42,
+  "total_rows": 389032,
+  "train_rows": 325532,
+  "test_rows": 63500,
+  "train_clients": 52,
+  "test_clients": 13,
+  "train_positive_rate": 0.4366083825860438,
+  "test_positive_rate": 0.48058267716535435,
+  "test_clients_list": [
+    "client_04660893ae39614a",
+    "client_08d2847f24cf89c1",
+    "client_0e1acc6cd57b0eba",
+    "client_20259bd6705d81d4",
+    "client_2094c6eb080311d5",
+    "client_3ffa76342f366962",
+    "client_400c21c81c8b46ef",
+    "client_8ae2bfb5aa1ffa1e",
+    "client_9c26c096d6e57253",
+    "client_a1203ffecad62470",
+    "client_a22068e339bf95f5",
+    "client_a60a11451483af1c",
+    "client_e00b29e582949543"
+  ],
+  "split_strategy": "client_holdout"
+}

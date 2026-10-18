@@ -1,0 +1,210 @@
+{
+  "artifact": "feature_metadata",
+  "description": "Verified feature contract for ML-04/ML-05. Option 1: March-May 2026 features -> June 2026 target.",
+  "verified_at": "2026-10-18",
+  "warehouse": {
+    "repo": "FlyRank/internship-warehouse",
+    "build_id": "flyrank_pseudonymized_warehouse_release_v20260703",
+    "auth_user": "RustyLegend"
+  },
+  "windows": {
+    "feature_window": [
+      "2026-03-01",
+      "2026-05-31"
+    ],
+    "prediction_cutoff": "2026-05-31",
+    "label_window": [
+      "2026-06-01",
+      "2026-06-30"
+    ],
+    "query_table_window": [
+      "2026-04-02",
+      "2026-06-30"
+    ]
+  },
+  "grain": "one row per content_hash_id (aggregated over feature window)",
+  "tables_used": {
+    "dim_clients": {
+      "rows": 104,
+      "grain": "client_hash_id"
+    },
+    "dim_content": {
+      "rows": 519606,
+      "grain": "content_hash_id",
+      "dup_keys": 0
+    },
+    "fact_content_daily_performance": {
+      "rows": 78835655,
+      "grain": "report_date+client_hash_id+content_hash_id",
+      "date_range": [
+        "2025-01-27",
+        "2026-06-30"
+      ],
+      "partitions": 18
+    },
+    "fact_content_query_90d": {
+      "rows": 2414248,
+      "grain": "client_hash_id+content_hash_id+query_hash_id",
+      "window": [
+        "2026-04-02",
+        "2026-06-30"
+      ],
+      "dup_keys": 0
+    },
+    "fact_content_daily_performance_sample": {
+      "rows": 11694072,
+      "grain": "report_date+client_hash_id+content_hash_id",
+      "date_range": [
+        "2026-06-01",
+        "2026-06-30"
+      ],
+      "note": "sealed final month - never for label logic"
+    }
+  },
+  "safe_features": {
+    "from_fact_daily": [
+      "gsc_impressions",
+      "gsc_clicks",
+      "gsc_avg_position",
+      "ga4_pageviews",
+      "ga4_sessions",
+      "ga4_engaged_sessions",
+      "ga4_total_engagement_sec",
+      "sessions_organic",
+      "sessions_direct",
+      "sessions_referral",
+      "sessions_social",
+      "sessions_paid",
+      "sessions_ai",
+      "scroll_events",
+      "gsc_days_available",
+      "ga4_days_available"
+    ],
+    "from_query_90d_safe": [
+      "impressions_prev30",
+      "clicks_prev30",
+      "avg_position_prev30"
+    ],
+    "from_query_90d_context_only": [
+      "content_total_impressions_90d",
+      "content_visible_query_count",
+      "rare_query_count",
+      "rare_impressions_share",
+      "anonymized_impressions_share"
+    ],
+    "from_dim_content": [
+      "content_type",
+      "main_intent",
+      "competition_level",
+      "search_volume",
+      "competition",
+      "cpc",
+      "word_count",
+      "char_count",
+      "content_age_days",
+      "days_since_last_update",
+      "backlinks",
+      "category_count",
+      "provider_used",
+      "model_used"
+    ]
+  },
+  "excluded_features": {
+    "impressions_last30": "June = target period -> future information (leakage)",
+    "clicks_last30": "June = target period -> future information (leakage)",
+    "avg_position_last30": "June = target period -> future information (leakage)",
+    "trend_direction": "label source (starter proxy only); not in warehouse",
+    "trend_pct": "label source (starter proxy only); not in warehouse",
+    "client_hash_id": "pseudonymous ID - grouping/splitting only, never a feature",
+    "content_hash_id": "pseudonymous ID - grouping/joining only, never a feature",
+    "query_hash_id": "pseudonymous ID - grouping/joining only, never a feature",
+    "health_score": "product decision - not shipped; would be circular",
+    "priority_score": "product decision - not shipped; would be circular",
+    "action_type": "product decision - not shipped; would be circular",
+    "refresh_tier": "product decision - not shipped; would be circular",
+    "month": "partition key, not a feature",
+    "impressions_90d (query_90d)": "covers Apr 2-Jun 30 -> overlaps target; use only *_prev30",
+    "clicks_90d (query_90d)": "covers Apr 2-Jun 30 -> overlaps target",
+    "avg_position_90d (query_90d)": "covers Apr 2-Jun 30 -> overlaps target"
+  },
+  "label": {
+    "name": "is_declining_june",
+    "definition": "June impressions < 0.8 * May impressions",
+    "source": "fact_content_daily_performance (daily facts only, never query_90d)",
+    "note": "starter proxy is_declining_label = (trend_direction == down) is a within-window proxy, not a future outcome"
+  },
+  "data_quality": {
+    "availability_flags": "3-valued (TRUE/FALSE/NULL) - use IS TRUE / IS NOT TRUE",
+    "ga4_null_rows_2026_06": 2397428,
+    "avg_position_zero_sentinel": "0.0 means no position data, not rank zero",
+    "missingness_by_content_type": {
+      "feedly article": {
+        "n": 57024,
+        "search_volume_null": 57024,
+        "word_count_null": 2930
+      },
+      "keyword article": {
+        "n": 459174,
+        "search_volume_null": 85595,
+        "word_count_null": 174835
+      },
+      "comparison article": {
+        "n": 3408,
+        "search_volume_null": 3,
+        "word_count_null": 3
+      }
+    },
+    "rate_columns": "x100 percentages (ctr=0.76 means 0.76%)",
+    "scroll_rate_can_exceed_100": true,
+    "ai_traffic_pct_can_exceed_100": true
+  },
+  "grain_verification": {
+    "daily_fact_2026_03": {
+      "total": 9841378,
+      "distinct_grain": 9841378,
+      "status": "PASS (no dups)"
+    },
+    "query_90d": {
+      "total": 2414248,
+      "distinct_grain": 2414248,
+      "status": "PASS (no dups)"
+    },
+    "dim_content": {
+      "total": 519606,
+      "distinct_keys": 519606,
+      "status": "PASS (no dups)"
+    }
+  },
+  "join_cardinality": {
+    "fact_to_dim_content": "many-to-one (331437 distinct content in 2026-03 <= 519606 dim rows) PASS",
+    "fact_to_dim_clients": "many-to-one (55 distinct clients in 2026-03 <= 104 dim clients) PASS"
+  },
+  "window_alignment": {
+    "feature_window_end": "2026-05-31",
+    "label_window_start": "2026-06-01",
+    "overlap": false,
+    "query_table_window": [
+      "2026-04-02",
+      "2026-06-30"
+    ],
+    "safe_query_columns": [
+      "impressions_prev30",
+      "clicks_prev30",
+      "avg_position_prev30"
+    ],
+    "unsafe_query_columns": [
+      "impressions_last30",
+      "clicks_last30",
+      "avg_position_last30"
+    ]
+  },
+  "missingness_handling": {
+    "numeric": "NULL -> 0 only when availability flag IS FALSE; otherwise keep NULL or use has_* flags",
+    "categorical": "NULL -> 'unknown'",
+    "content_type_driven": "use has_* flags, not blind fillna(0)"
+  },
+  "notebooks": {
+    "data_contract": "work/notebooks/w03_data_contract.ipynb",
+    "leakage_check": "work/notebooks/w03_feature_leakage_check.ipynb"
+  }
+}

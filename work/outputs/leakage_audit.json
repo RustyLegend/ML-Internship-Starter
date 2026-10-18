@@ -1,0 +1,131 @@
+{
+  "artifact": "leakage_audit",
+  "description": "Feature-level leakage audit for ML-05. Option 1: March-May 2026 features -> June 2026 target.",
+  "verified_at": "2026-10-18",
+  "warehouse": "FlyRank/internship-warehouse",
+  "checks": {
+    "window_alignment": {
+      "verdict": "PASS",
+      "evidence": "Feature window ends 2026-05-31, label window starts 2026-06-01. No overlap. Verified via DuckDB MAX(report_date) on 2026-03 partition."
+    },
+    "label_derived_features": {
+      "verdict": "PASS",
+      "evidence": "Label is_declining_june built from daily gsc_impressions (June < 0.8 * May). trend_direction and trend_pct are starter-only, not in warehouse. No label-derived column in feature set."
+    },
+    "id_exclusion": {
+      "verdict": "PASS",
+      "evidence": "client_hash_id, content_hash_id, query_hash_id are pseudonymous IDs. Used for grouping/joining/splitting only. Not in feature set."
+    },
+    "product_flags": {
+      "verdict": "PASS",
+      "evidence": "dim_content has no health_score, priority_score, action_type, refresh_tier, or any product decision flag. Verified via column name scan."
+    },
+    "grain_probe": {
+      "verdict": "PASS",
+      "evidence": "0 duplicate (report_date, client_hash_id, content_hash_id) groups in 2026-03 partition (9,841,378 rows)."
+    },
+    "join_cardinality": {
+      "verdict": "PASS",
+      "evidence": "fact->dim_content is many-to-one: 331,437 distinct content in 2026-03 <= 519,606 dim rows. fact->dim_clients: 55 <= 104."
+    },
+    "three_valued_flags": {
+      "verdict": "PASS",
+      "evidence": "ga4_data_available is 3-valued (TRUE/FALSE/NULL). 2,397,428 NULL rows in 2026-06. Filter with IS TRUE / IS NOT TRUE, never = FALSE or NOT."
+    },
+    "avg_position_zero_sentinel": {
+      "verdict": "PASS",
+      "evidence": "163,189 / 9,841,378 (1.7%) rows have gsc_avg_position = 0.0 in 2026-03. 0 means no data, not rank zero."
+    },
+    "query_90d_window_overlap": {
+      "verdict": "PASS (documented and handled)",
+      "evidence": "query_90d fixed window 2026-04-02 -> 2026-06-30. impressions_last30 (June) and avg_position_last30 (June) are EXCLUDED as leakage. Only impressions_prev30, clicks_prev30, avg_position_prev30 (May) are safe features."
+    }
+  },
+  "feature_verdicts": {
+    "daily_fact_aggregates_Mar_May": {
+      "verdict": "SAFE",
+      "evidence": "window ends 2026-05-31, before label 2026-06-01"
+    },
+    "impressions_prev30": {
+      "verdict": "SAFE",
+      "evidence": "covers May (prev 30 of query window), ends before June label"
+    },
+    "clicks_prev30": {
+      "verdict": "SAFE",
+      "evidence": "covers May"
+    },
+    "avg_position_prev30": {
+      "verdict": "SAFE",
+      "evidence": "covers May; NULL when no impressions in May"
+    },
+    "content_total_impressions_90d": {
+      "verdict": "CONTEXT ONLY",
+      "evidence": "describes full query window (Apr 2-Jun 30); use as volume context, not predictive feature"
+    },
+    "content_visible_query_count": {
+      "verdict": "CONTEXT ONLY",
+      "evidence": "per-content context; ANY_VALUE, never SUM"
+    },
+    "rare_impressions_share": {
+      "verdict": "CONTEXT ONLY",
+      "evidence": "per-content context"
+    },
+    "anonymized_impressions_share": {
+      "verdict": "CONTEXT ONLY",
+      "evidence": "per-content context"
+    },
+    "impressions_last30": {
+      "verdict": "LEAKAGE",
+      "evidence": "covers June = target period"
+    },
+    "clicks_last30": {
+      "verdict": "LEAKAGE",
+      "evidence": "covers June = target period"
+    },
+    "avg_position_last30": {
+      "verdict": "LEAKAGE",
+      "evidence": "covers June = target period"
+    },
+    "trend_direction": {
+      "verdict": "NOT IN WAREHOUSE",
+      "evidence": "starter-only proxy column"
+    },
+    "trend_pct": {
+      "verdict": "NOT IN WAREHOUSE",
+      "evidence": "starter-only proxy column"
+    },
+    "client_hash_id": {
+      "verdict": "EXCLUDED",
+      "evidence": "pseudonymous ID - grouping/splitting only"
+    },
+    "content_hash_id": {
+      "verdict": "EXCLUDED",
+      "evidence": "pseudonymous ID - grouping/joining only"
+    },
+    "query_hash_id": {
+      "verdict": "EXCLUDED",
+      "evidence": "pseudonymous ID - grouping/joining only"
+    },
+    "health_score": {
+      "verdict": "NOT SHIPPED",
+      "evidence": "product decision - not in warehouse"
+    },
+    "priority_score": {
+      "verdict": "NOT SHIPPED",
+      "evidence": "product decision - not in warehouse"
+    },
+    "action_type": {
+      "verdict": "NOT SHIPPED",
+      "evidence": "product decision - not in warehouse"
+    },
+    "month": {
+      "verdict": "EXCLUDED",
+      "evidence": "partition key, not a feature"
+    }
+  },
+  "notebooks": {
+    "data_contract": "work/notebooks/w03_data_contract.ipynb",
+    "leakage_check": "work/notebooks/w03_feature_leakage_check.ipynb"
+  },
+  "status": "PASS - all leakage checks passed"
+}

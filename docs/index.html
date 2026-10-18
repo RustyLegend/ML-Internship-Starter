@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlyRank ML Internship — Content Decline Risk Scoring</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #27343b;
+            --muted: #65737a;
+            --dark: #16232a;
+            --purple: #6f4e7c;
+            --teal: #426b69;
+            --blue: #4e79a7;
+            --lavender: #8c6bb1;
+            --border: #d9dee2;
+            --light-bg: #f6f4f7;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        h1, h2, h3 {
+            color: var(--dark);
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        h1 { font-size: 2rem; border-bottom: 3px solid var(--purple); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+        h3 { font-size: 1.2rem; }
+        p { margin: 0.75rem 0; }
+        a { color: var(--purple); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code {
+            background: var(--light-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+            font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+        }
+        pre {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        th {
+            background: var(--dark);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) { background: var(--light-bg); }
+        blockquote {
+            border-left: 4px solid var(--purple);
+            margin: 1rem 0;
+            padding: 0.5rem 1rem;
+            background: var(--light-bg);
+            color: var(--muted);
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: -0.5rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+        .hero {
+            background: linear-gradient(135deg, var(--purple), var(--teal));
+            color: white;
+            padding: 2.5rem 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .hero h1 {
+            color: white;
+            border-bottom: none;
+            margin-top: 0;
+        }
+        .hero p { color: rgba(255,255,255,0.9); }
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .meta span { display: flex; align-items: center; gap: 0.3rem; }
+        .toc {
+            background: var(--light-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .toc h3 { margin-top: 0; font-size: 1.1rem; }
+        .toc ul { margin: 0; padding-left: 1.25rem; }
+        .toc li { margin: 0.25rem 0; }
+        .section {
+            margin: 2rem 0;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .footer a { color: var(--purple); }
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 0.35rem 0.5rem; }
+            .meta { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Content Decline Risk Scoring</h1>
+            <p>FlyRank Applied Search Intelligence — ML Internship Capstone</p>
+            <div class="meta">
+                <span>Author: Rahul Gunturu</span>
+                <span>Lane: Refresh / Content Opportunity Scoring</span>
+                <span>Date: 2026-10-18</span>
+                <span>Data: FlyRank warehouse (78.8M rows)</span>
+            </div>
+        </div>
+
+        <div class="toc">
+            <h3>Contents</h3>
+            <ul>
+                <li><a href="#abstract">0. Abstract</a></li>
+                <li><a href="#problem-framing">1. Problem framing</a></li>
+                <li><a href="#data-safety">2. Data safety</a></li>
+                <li><a href="#baseline">3. Baseline</a></li>
+                <li><a href="#model-analysis">4. Model / analysis</a></li>
+                <li><a href="#evaluation">5. Evaluation</a></li>
+                <li><a href="#interpretation">6. Interpretation</a></li>
+                <li><a href="#recommendation">7. Recommendation</a></li>
+                <li><a href="#reproducibility">8. Reproducibility</a></li>
+                <li><a href="#acknowledgments">9. Acknowledgments &amp; data credit</a></li>
+            </ul>
+        </div>
+
+        <div id="abstract" class="section">
+            <h2>0. Abstract</h2>
+<p>This project builds a content-decline risk model on 78.8 million rows of real, pseudonymized
+search data from the FlyRank warehouse. The eligible feature population is 389,032 content pages,
+ranked by the probability of a 20%+ visibility drop in June 2026, using 33 features derived from
+March–May 2026 daily facts, static content metadata, and query-level signals. A decision tree
+achieved ROC AUC 0.8679 and average precision 0.7908 on a held-out client-grouped test set of
+63,500 rows, beating a transparent heuristic baseline (AUC 0.7711) and random ranking. The output
+is a 63,500-row operational review queue with reason codes and human-review requirements. All claims
+are framed as observed, measured, directional, and decision-support — not causal.</p>
+<h2 id="problem-framing">1. Problem framing</h2>
+<p><strong>Decision supported:</strong> A content team with limited review capacity must decide which pages to
+inspect, refresh, or monitor first. The model ranks pages by estimated decline risk; the baseline
+provides a transparent rule-based review queue with reason codes.</p>
+<p><strong>Unit of analysis:</strong> One content item (content_hash_id) for one client (client_hash_id), aggregated
+over a time window.</p>
+<p><strong>Output:</strong> A ranked list of pages with decline probability, reason codes, and suggested actions.</p>
+<p><strong>Action a human takes:</strong> Review the top-ranked pages, verify the recommendation against editorial
+context, and decide whether to refresh, investigate tracking, leave unchanged, or escalate.</p>
+<p><strong>Cost of a wrong call:</strong> Time and resources spent on pages that don't need attention, or missed
+opportunities to catch declining pages before they lose significant traffic.</p>
+<p><strong>Why data/ML helps:</strong> The relationship between search signals (impressions, CTR, position, content
+age, freshness) and decline is too complex for a single if-statement. A learned model can combine
+these signals and beat a transparent hand-written rule.</p>
+<h2 id="data-safety">2. Data safety</h2>
+<p><strong>Data used:</strong> FlyRank internship warehouse (Hugging Face, gated, build v20260703). Pseudonymized —
+no client names, domains, URLs, titles, or keywords. 78,835,655 daily rows, 519,606 content items,
+104 clients, 2,414,248 query-level rows.</p>
+<p><strong>Columns deliberately excluded:</strong></p>
+<ul>
+<li><code>trend_direction</code>, <code>trend_pct</code> — label source (starter proxy only, not in warehouse).</li>
+<li><code>impressions_last30</code>, <code>clicks_last30</code>, <code>avg_position_last30</code> — June = target period (leakage).</li>
+<li><code>client_hash_id</code>, <code>content_hash_id</code>, <code>query_hash_id</code> — pseudonymous IDs, grouping/splitting only.</li>
+<li><code>health_score</code>, <code>priority_score</code>, <code>action_type</code>, <code>refresh_tier</code> — product decisions, not shipped.</li>
+<li><code>content_total_impressions_90d</code>, <code>content_visible_query_count</code>, etc. — query window overlaps target; context only.</li>
+<li><code>month</code> — partition key, not a feature.</li>
+</ul>
+<p><strong>Leakage risks considered:</strong></p>
+<ul>
+<li>Feature window (Mar-May 2026) strictly before label window (June 2026). No overlap.</li>
+<li>Three-valued availability flags: <code>ga4_data_available</code> can be TRUE/FALSE/NULL (2.4M NULL in June).
+Filter with <code>IS TRUE</code> / <code>IS NOT TRUE</code>, never <code>= FALSE</code>.</li>
+<li><code>avg_position = 0</code> means &quot;no data&quot;, not rank zero.</li>
+<li>Missingness follows <code>content_type</code>: feedly articles have 100% missing keyword data; keyword
+articles have ~18.6% missing search_volume and ~38.1% missing word_count. A blind <code>fillna(0)</code>
+would inject a category signal — use <code>has_*</code> flags instead.</li>
+<li>IDs used for grouping and client-grouped splits, never as features.</li>
+</ul>
+<p><strong>Nothing client-identifying appears in <code>work/</code>.</strong> All outputs use pseudonymous IDs, aggregated
+metrics, and charts from safe data.</p>
+<h2 id="baseline">3. Baseline</h2>
+<p><strong>Transparent rule:</strong> A page is worth reviewing first if it has meaningful search visibility,
+its CTR is substantially below what its search position would predict, and it is stale or thin.</p>
+<p><strong>Score formula:</strong></p>
+<pre><code>baseline_score = 0.40 * visibility + 0.30 * freshness_risk + 0.25 * position_opportunity + 0.05 * depth_gap
+</code></pre>
+<p>where visibility = percentile_rank(log1p(impressions)), freshness_risk = percentile_rank(days_since_last_update),
+position_opportunity = (1 - normalize(avg_position)) * visibility * (avg_position &gt; 0),
+depth_gap = (1 - percentile_rank(word_count)) * visibility.</p>
+<p><strong>Reason codes:</strong> stale_visible_page, low_ctr_visible_page, thin_visible_page, page_one_decay_risk,
+low_engagement_visible_page, general_refresh_review.</p>
+<p><strong>Why it's a fair comparison:</strong> The baseline is evaluated on the full 389,032-row feature population
+(base rate 0.4438) using the same June decline label as the model. The model is evaluated on the
+held-out 63,500-row test set (base rate 0.4806). Both use only features available by 2026-05-31.
+These are different populations and their metrics must not be compared directly.</p>
+<p><strong>Baseline metrics (real warehouse, 389,032-row population, March-May features):</strong></p>
+<ul>
+<li>ROC AUC: 0.7801</li>
+<li>Average precision: 0.6571</li>
+<li>Precision@20: 0.1000 (random: 0.4438, lift: 0.23x)</li>
+<li>Precision@50: 0.1200 (random: 0.4438, lift: 0.27x)</li>
+<li>Precision@100: 0.2600 (random: 0.4438, lift: 0.59x)</li>
+</ul>
+<p>The baseline is a &quot;review priority&quot; score, not a &quot;decline prediction&quot; score. Its Precision@K is
+below base rate because it prioritizes review candidates (high-visibility, stale, low-CTR pages),
+not all of which decline. This is consistent with the starter pipeline (starter P@50 = 0.240 vs
+base rate 0.542).</p>
+<h2 id="model-analysis">4. Model / analysis</h2>
+<p><strong>Method:</strong> Logistic regression, decision tree, and random forest — compared on the same
+client-grouped split and metric.</p>
+<p><strong>Feature list (33 features: 29 numeric + 4 categorical):</strong></p>
+<ul>
+<li>From fact_daily (Mar-May): gsc_impressions, gsc_clicks, gsc_avg_position, ga4_pageviews, ga4_sessions,
+ga4_engaged_sessions, ga4_total_engagement_sec, sessions_*, scroll_events, gsc_days_available,
+ga4_days_available, n_days, content_age_days, days_since_last_update.</li>
+<li>From query_90d (safe only): impressions_prev30, clicks_prev30, avg_position_prev30.</li>
+<li>From dim_content (static): search_volume, competition, cpc, word_count, char_count, backlinks,
+category_count, content_type, main_intent, competition_level, provider_used.</li>
+</ul>
+<p><strong>Target:</strong> <code>is_declining_june</code> = June impressions &lt; 0.8 * May impressions. Base rate: 0.4438.</p>
+<p><strong>What was left out on purpose:</strong> June-period features, target-derived fields, IDs as predictors,
+query-window fields that overlap the target (impressions_last30, etc.), product flags, trend columns.</p>
+<p><strong>Preprocessing:</strong> SimpleImputer (constant 0 for numeric, 'unknown' for categorical) + StandardScaler
+(LR) / no scaler (trees) + OneHotEncoder (handle_unknown='ignore'). Class weighting: 'balanced'
+(LR, DT), 'balanced_subsample' (RF). All fitted on training data only.</p>
+<div class="section"><img src="charts/top_feature_importance.svg" alt="Top model features" /><p class="chart-caption">Top 10 features by importance (decision tree). gsc_impressions_total dominates at 0.897.</p></div>
+
+<h2 id="evaluation">5. Evaluation</h2>
+<p><strong>Split:</strong> Client-grouped, 80/20 (train: 325,532 rows / 52 clients; test: 63,500 rows / 13 clients).
+RANDOM_STATE = 42. No client overlap between train and test.</p>
+<p><strong>Important population distinction:</strong> The baseline metrics above (§3) were computed on the full
+389,032-row feature population (base rate 0.4438). The model comparison below uses the held-out
+63,500-row test population (base rate 0.4806). These are different populations and must not be
+compared directly.</p>
+<p><strong>Metrics:</strong> ROC AUC, average precision, Precision@K (K=20, 50, 100), lift over base rate,
+confusion matrix, classification report.</p>
+<p><strong>Model comparison (same 63,500-row test set, same split):</strong></p>
+<table>
+<thead>
+<tr><th>Model</th><th>ROC AUC</th><th>Avg Precision</th><th>P@20</th><th>P@50</th><th>P@100</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
+</thead>
+<tbody>
+<tr><td>logistic_regression</td><td>0.6387</td><td>0.6359</td><td>0.80</td><td>0.66</td><td>0.63</td><td>0.7259</td><td>0.3362</td><td>0.4595</td></tr>
+<tr><td><strong>decision_tree</strong></td><td><strong>0.8679</strong></td><td><strong>0.7908</strong></td><td>0.90</td><td>0.90</td><td>0.86</td><td>0.7361</td><td>0.9747</td><td>0.8387</td></tr>
+<tr><td>random_forest</td><td>0.8465</td><td>0.7846</td><td>1.00</td><td>0.98</td><td>0.96</td><td>0.7326</td><td>0.8297</td><td>0.7781</td></tr>
+<tr><td>dummy_majority</td><td>0.5000</td><td>0.4806</td><td>0.60</td><td>0.56</td><td>0.44</td><td>0.0000</td><td>0.0000</td><td>0.0000</td></tr>
+<tr><td>heuristic_baseline</td><td>0.7711</td><td>0.6640</td><td>0.75</td><td>0.84</td><td>0.77</td><td>-</td><td>-</td><td>-</td></tr>
+</tbody>
+</table>
+<p><strong>Selected model:</strong> Decision tree (best ROC AUC 0.8679, average precision 0.7908).</p>
+<p><strong>Rationale:</strong> Best held-out ROC AUC (0.8679) and average precision (0.7908) among the three
+candidate models. Decision tree and random forest beat the heuristic baseline (AUC 0.7711) on AUC and
+average precision; logistic regression (AUC 0.6387) does not. Random forest has better precision@K
+(P@20=1.00, P@50=0.98) but lower ROC AUC. Decision tree chosen for best overall discrimination +
+interpretability (readable rules).</p>
+<p><strong>Confusion matrix (decision tree, threshold 0.5):</strong> TN=22,317, FP=10,666, FN=772, TP=29,745.
+Precision=0.7361, Recall=0.9747, F1=0.8387, Accuracy=0.820.</p>
+<p><strong>Model vs baseline:</strong> Decision tree (AUC 0.8679) and random forest (AUC 0.8465) beat the heuristic
+baseline (AUC 0.7711) on ROC AUC and average precision. Logistic regression (AUC 0.6387) does NOT
+beat the heuristic on either metric. The heuristic has better P@50 (0.84) than logistic regression
+(0.66) but lower than decision tree (0.90) and random forest (0.98).</p>
+<p><strong>Did the model beat the baseline?</strong> Yes, for decision tree and random forest. The model predicts decline
+directly; the heuristic prioritizes review candidates. These are different objectives. Logistic regression
+did not beat the heuristic baseline.</p>
+<p><strong>Dummy-majority P@K note:</strong> The dummy majority classifier predicts all rows as positive (class 1),
+so every row receives the same score (1.0). Precision@K is then determined by the original row order
+in the test set, not by the base rate alone, because all scores are tied and ties are broken
+arbitrarily by the stable sort. The saved values (P@20=0.60, P@50=0.56, P@100=0.44)
+reflect this tie-breaking behavior and do not equal the base rate (0.4806) for any finite K. This is
+technically valid but not a meaningful ranking baseline — all rows are tied, so the ranking is arbitrary.
+A genuine random ranking reference (10 permutations, from metric_verification.json) gives
+P@50 = 0.5000 ± 0.0775 (mean 0.5000, std 0.0775), which is the appropriate comparison
+for ranking quality. The dummy-majority classifier is included for completeness but should not be
+used as a ranking reference.</p>
+<h2 id="interpretation">6. Interpretation</h2>
+<p><strong>What the model found:</strong></p>
+<ul>
+<li><code>gsc_impressions_total</code> dominates feature importance at 0.897. Higher historical impressions
+predict higher decline risk. The temporal-window audit supports treating this as a non-leaking
+historical signal, although the model may over-rely on it. Ablation shows that removing this
+feature alone leaves AUC unchanged at the reported precision, suggesting redundancy with other
+GSC features.</li>
+<li><code>gsc_days_available</code> (0.033), <code>gsc_avg_position</code> (0.032), <code>content_age_days</code> (0.032) are secondary signals.</li>
+<li><code>content_type</code> and <code>main_intent</code> are strong categorical signals.</li>
+</ul>
+<p><strong>Surprises:</strong></p>
+<ul>
+<li>The decision tree outperforms the random forest on ROC AUC (0.8679 vs 0.8465), suggesting the
+relationship is captured by simple rules, not complex interactions.</li>
+<li>The heuristic baseline has lower P@50 (0.84) than the decision tree (0.90), but the heuristic's
+purpose is review prioritization, not decline prediction. The two metrics measure different things.</li>
+<li>Logistic regression underperforms (AUC 0.6387), suggesting non-linear relationships.</li>
+</ul>
+<p><strong>Negative results:</strong></p>
+<ul>
+<li>No time-aware backtest was possible (query table has fixed window).</li>
+<li>Calibration was not tested (probability scores are for ranking only).</li>
+<li>The model's reliance on gsc_impressions_total (0.897) is a concern for generalization.</li>
+</ul>
+<p><strong>Feature importance sanity check:</strong> The top feature (gsc_impressions_total) makes sense — pages with
+more impressions have more to lose. But its dominance (0.897) is suspiciously high. Phase 5 ablation
+showed that removing gsc_impressions_total alone leaves AUC unchanged at the reported precision
+(0.8679 -&gt; 0.8679), which suggests redundancy with other GSC features, not that the feature is
+independently responsible for performance. Removing all GSC features reduces AUC to 0.5485, confirming
+GSC features are essential as a group. This does not prove the feature is leakage; it is classified
+as SAFE (legitimate signal) based on the window-alignment and ablation evidence.</p>
+<h2 id="recommendation">7. Recommendation</h2>
+<p><strong>The ranked actions or decisions the output supports:</strong></p>
+<ul>
+<li>The operational queue (<code>work/outputs/operational_review_queue.csv</code>, 63,500 rows, 28 columns) ranks
+pages by model probability (decline risk) with separate baseline score (review priority).</li>
+<li>Review categories: high_priority_review (7,783, 12.3%), medium_priority_review (32,628, 51.4%),
+low_priority_monitor (23,089, 36.4%).</li>
+<li>Reason codes explain why each page scored highly: low_ctr_visible_page, stale_visible_page,
+thin_visible_page, page_one_decay_risk, low_engagement_visible_page, general_refresh_review.</li>
+<li>Suggested actions: refresh, refresh_and_review_ctr, expand_and_refresh, refresh_and_review_engagement, monitor.</li>
+</ul>
+<p><strong>How a content editor would use this tomorrow:</strong></p>
+<ol>
+<li>Sort the queue by model_rank (highest probability first).</li>
+<li>Inspect the top 20-50 pages: check the reason codes, supporting metrics, and data coverage.</li>
+<li>For pages with <code>refresh_and_review_ctr</code>: review title/meta/snippet.</li>
+<li>For pages with <code>expand_and_refresh</code>: consider expanding thin content.</li>
+<li>For pages with <code>refresh</code>: check content freshness and update.</li>
+<li>For pages with missing GA4 data: flag for tracking review, not content review.</li>
+<li>Record decisions for monitoring and retraining.</li>
+</ol>
+<p><strong>Confidence and limits:</strong></p>
+<ul>
+<li>The model estimates risk, not treatment effect. No evidence that refreshing prevents decline.</li>
+<li>Probability scores are not calibrated. Use for ranking only.</li>
+<li>The model was validated on a client-grouped split, not a time-aware split.</li>
+<li>Small-client metrics are unreliable (min 13 rows).</li>
+<li>The operational queue covers the held-out test set (63,500 rows), not the full 389,032-row population.</li>
+</ul>
+<h2 id="reproducibility">8. Reproducibility</h2>
+<p><strong>Exact commands to re-run everything from a fresh clone:</strong></p>
+<pre><code class="language-bash">python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python scripts/run_all.py  # starter pipeline on bundled sample
+</code></pre>
+<p><strong>For warehouse analysis:</strong></p>
+<pre><code class="language-bash"># Set HF_TOKEN via env or Colab Secrets (never in a cell)
+.venv/bin/python -m pip install duckdb huggingface_hub
+
+# Warehouse notebooks must be executed in phase order:
+# 1. w03_data_contract.ipynb (ML-04) - data contract + window alignment
+# 2. w03_feature_leakage_check.ipynb (ML-05) - leakage audit
+# 3. w04_signal_audit.ipynb (ML-06) - signal audit
+# 4. w04_baseline_score.ipynb (ML-07) - baseline score
+# 5. w05_model.ipynb (ML-08) - model training
+# 6. w06_validation_audit.ipynb (ML-09) - validation
+# 7. w07_action_playbook.ipynb (ML-10) - action playbook
+# 8. capstone.ipynb (ML-11/12) - capstone
+# Note: scripts/run_all.py runs the BUNDLED starter pipeline only, not the warehouse analysis.
+</code></pre>
+<p><strong>Random seeds:</strong> RANDOM_STATE = 42 (model training), np.random.default_rng(42) (client split).</p>
+<p><strong>Environment:</strong> Python 3.14.4, pandas 3.0.6, numpy 2.5.4, scikit-learn 1.9.1, duckdb 1.5.6,
+huggingface_hub 2.2.0, pyarrow 26.0.0, reportlab 5.0.1. (CI runs Python 3.12.)</p>
+<p><strong>Receipts:</strong> All metrics, feature lists, split metadata, and audit results are saved in
+<code>work/outputs/*.json</code> and <code>work/outputs/*.parquet</code>. The operational queue is in
+<code>work/outputs/operational_review_queue.csv</code>.</p>
+<p><strong>Sealed/holdout claims:</strong> The frame-builder (notebook w05_model.ipynb) is tracked in Git. The metrics
+files (model_comparison.json, etc.) are currently untracked receipts in work/outputs/. The
+client-grouped split is reproducible with seed 42.</p>
+<h2 id="acknowledgments">9. Acknowledgments &amp; data credit</h2>
+<p>Built on the FlyRank ML Internship dataset. Data source: https://flyrank.ai</p>
+<p>The anonymized starter dataset and the full pseudonymized warehouse release are provided by FlyRank
+for educational and research purposes. No client-identifying names, domains, page URLs, titles, or raw queries are exposed in any output.
+All results are framed as observed, measured, directional, and decision-support. Public attribution
+links (FlyRank data source, GitHub repository) are retained as required.</p>
+
+        </div>
+
+        <div class="section"><img src="charts/action_mix.svg" alt="Suggested action mix" /><p class="chart-caption">Distribution of suggested actions across the 63,500-row held-out test-set operational review queue.</p></div>
+
+        <div class="footer">
+            <p>Built on the FlyRank ML Internship dataset. Data source: <a href="https://flyrank.ai">https://flyrank.ai</a></p>
+            <p>All results are framed as observed, measured, directional, and decision-support.
+            No client-identifying names, domains, page URLs, titles, or raw queries appear in any output.</p>
+            <p>Source code and notebooks: <a href="https://github.com/RustyLegend/ML-Internship-Starter">github.com/RustyLegend/ML-Internship-Starter</a></p>
+        </div>
+    </div>
+</body>
+</html>
